@@ -22,7 +22,7 @@ except ImportError:
     print("Brakuje biblioteki Pillow. Uruchom: pip install pillow")
     sys.exit(1)
 
-VER = "13.0.2"
+VER = "12.0.0"
 
 
 def wersja_programu():
@@ -355,7 +355,6 @@ def zakoduj_pin(pin):
 def domyslna_baza():
     return {
         "pin": zakoduj_pin("1234"),
-        "dlugosc_pin": 4,
         "motyw": "ciemny",
         "start_pelny": False,
         "admin_haslo": "",
@@ -1032,13 +1031,6 @@ class EkranPin(tk.Frame):
         # podpowiedz z numerem 1234.
         self.pin_fabryczny = dane.get("pin") == zakoduj_pin("1234")
 
-        # Ile kropek pokazac i ile cyfr przyjac. Liczba jest stala —
-        # wynika z dlugosci ustawionego PIN-u, nie z tego, ile juz
-        # wpisano. Wczesniej rzad rosl w trakcie pisania, wiec kropki
-        # przesuwaly sie pod palcem i mozna bylo wbic wiecej cyfr,
-        # niz PIN ma naprawde.
-        self.dlugosc_pin = self._ile_cyfr(dane)
-
         self.wpisany = ""
         self.proby = 0
         self.info = ""
@@ -1072,20 +1064,6 @@ class EkranPin(tk.Frame):
         self._pilnuj(0)
         self.bind_all("<Key>", self._klawisz)
         self.after(60, self._na_zmiane)
-
-    @staticmethod
-    def _ile_cyfr(dane):
-        """Dlugosc ustawionego PIN-u, zawsze miedzy 4 a 8.
-
-        PIN lezy w bazie jako suma kontrolna, wiec dlugosci nie da sie
-        z niego odczytac — zapisujemy ja osobno przy kazdej zmianie.
-        Gdy jej nie ma (baza ze starszej wersji), zostaja cztery cyfry.
-        """
-        try:
-            ile = int(dane.get("dlugosc_pin", 4) or 4)
-        except (TypeError, ValueError):
-            ile = 4
-        return max(4, min(8, ile))
 
     # ------------------------------------------------------------------
     # czcionki i ksztalty
@@ -1380,7 +1358,7 @@ class EkranPin(tk.Frame):
         ky = ty + p(56)
         prom = max(p(6), int(self.KLW * 0.15) // 2)
         odstep = max(p(22), int(self.KLW * 0.40))
-        ile = self.dlugosc_pin
+        ile = max(4, len(self.wpisany))
         x0 = KW / 2 - (ile - 1) * odstep / 2
         for i in range(ile):
             x = x0 + i * odstep
@@ -1585,7 +1563,7 @@ class EkranPin(tk.Frame):
         elif znak == "OK":
             self._sprawdz()
             return
-        elif len(self.wpisany) < self.dlugosc_pin:
+        elif len(self.wpisany) < 8:
             self.wpisany += znak
         self.info = ""
         self.rysuj()
@@ -1783,10 +1761,8 @@ class EkranPin(tk.Frame):
 
             if uprawniony:
                 d["pin"] = zakoduj_pin(nowy)
-                d["dlugosc_pin"] = len(nowy)
                 zapisz(d)
                 w.destroy()
-                self.dlugosc_pin = self._ile_cyfr(d)
                 self.proby = 0
                 self.zablokowany = False
                 self.wpisany = ""
@@ -3666,15 +3642,12 @@ class App(tk.Tk):
                                    parent=self)
             return
         self.d["pin"] = zakoduj_pin(nowy)
-        self.d["dlugosc_pin"] = len(nowy)
         zapisz(self.d)
-        # Ekran logowania przestaje pokazywac podpowiedz z fabrycznym PIN-em
-        # i od razu rysuje tyle kropek, ile ma nowy PIN.
+        # Ekran logowania przestaje pokazywac podpowiedz z fabrycznym PIN-em.
         ekran = getattr(self, "ekran_pin", None)
         try:
             if ekran is not None and ekran.winfo_exists():
                 ekran.pin_fabryczny = (nowy == "1234")
-                ekran.dlugosc_pin = ekran._ile_cyfr(self.d)
         except tk.TclError:
             pass
         messagebox.showinfo("PIN", "PIN zmieniony.", parent=self)

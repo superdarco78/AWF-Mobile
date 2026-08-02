@@ -35,7 +35,6 @@ python -m PyInstaller --onedir --windowed --clean --noupx ^
   --name "AWF-Kierowcy" ^
   --icon ikona.ico ^
   --manifest manifest.xml ^
-  --version-file wersja-exe.py ^
   --hidden-import tlo_wbudowane ^
   --add-data "ikona.ico;." ^
   --add-data "godlo-awf.png;." ^
