@@ -26,6 +26,14 @@ DefaultGroupName={#NazwaApp}
 OutputDir=.
 OutputBaseFilename=AWF-Kierowcy-Instalator-v{#WersjaApp}
 SetupIconFile=ikona.ico
+; Dane widoczne we wlasciwosciach pliku. Bez nich Windows traktuje
+; instalator jak plik bez tozsamosci i chetniej go blokuje.
+VersionInfoVersion={#WersjaApp}
+VersionInfoCompany={#WydawcaApp}
+VersionInfoDescription=AWF KIEROWCY - kontrola wjazdu i wyjazdu
+VersionInfoProductName={#NazwaApp}
+VersionInfoProductVersion={#WersjaApp}
+VersionInfoCopyright=Monter24h.pl dla Strazy Akademickiej AWF
 UninstallDisplayIcon={app}\{#PlikExe}
 Compression=lzma2/max
 SolidCompression=yes

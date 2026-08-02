@@ -1,79 +1,103 @@
 ==========================================================
-   AWF KIEROWCY — pierwsze uruchomienie repozytorium
+   AWF KIEROWCY  12.0.1  —  co zawiera ta paczka
 ==========================================================
 
-   NUMER WERSJI — jeden plik, nic wiecej
-
-   Numer siedzi w pliku:   wersja-programu.txt
-   Teraz jest tam:         12.0.1
-
-   Czytaja go dwie rzeczy:
-     - budowanie na GitHubie (nadaje taki numer wydaniu)
-     - sam program (pokazuje go w rogu i w stopce)
-
-   Wiec numer zawsze sie zgadza.
+   31 plikow. Wszystko, czego potrzebuje program
+   i budowanie na GitHubie.
 
 ----------------------------------------------------------
-   JAK TO DZIALA PRZY KOLEJNYCH PACZKACH
+   CO WGRAC
 ----------------------------------------------------------
 
-   Wgrywasz paczke, nic nie zmieniasz w tym pliku:
-      12.0.1 -> 12.0.2 -> 12.0.3 -> 12.0.4 ...
-      numer rosnie sam.
+   WSZYSTKO. Rozpakuj na stare pliki, Ctrl+A,
+   przeciagnij na GitHuba.
 
-   Chcesz przeskoczyc gdzie indziej:
-      otworz wersja-programu.txt, wpisz np.  15.0.0
-      i tyle bedzie w wydaniu.
+   W paczce jest juz poprawiony plik budowania pod ta
+   sama nazwa, co w repozytorium:
+      .github/workflows/main.yml
+   Nadpisze sie sam razem z reszta.
 
-   Nic wiecej nie trzeba. Zadnych znacznikow,
-   zadnych opisow, zadnego edytowania kodu.
-
-----------------------------------------------------------
-   PIERWSZE WGRANIE DO PUSTEGO REPOZYTORIUM
-----------------------------------------------------------
-
-1. Rozpakuj ta paczke do folderu.
-
-2. Na stronie repozytorium kliknij:
-      Add file  ->  Upload files
-
-3. Przeciagnij CALY FOLDER na ramke, ktora sie pojawi.
-   (nie zaznaczone pliki — caly folder, zeby poszedl
-   tez ukryty podfolder .github)
-
-4. Na liscie plikow sprawdz, czy jest wpis:
-      .github/workflows/buduj.yml
-   Jesli go nie ma, przegladarka go pominela — wtedy
-   wgraj reszte, a ten jeden plik dodaj osobno przez
-   Add file -> Create new file, wpisujac sciezke
-   .github/workflows/buduj.yml i wklejajac zawartosc.
-
-5. Wpisz opis i zatwierdz. Budowanie ruszy samo.
-
-6. Zakladka Releases -> pobierz instalator -> zainstaluj.
+   Zeby na pewno poszedl, wgraj przez:
+      Add file -> Upload files
+   i przeciagnij CALY FOLDER na ramke, ktora sie pojawi.
+   Przeciaganie zaznaczonych plikow (Ctrl+A) pomija
+   podfoldery zaczynajace sie od kropki.
 
 ----------------------------------------------------------
-   POTEM JUZ TYLKO
+   NUMER WERSJI — jeden plik
 ----------------------------------------------------------
 
-   Rozpakowanie nowej paczki na stara -> Ctrl+A ->
-   przeciagniecie na GitHuba. Program sam znajdzie
-   nowa wersje i sam sie zaktualizuje.
+   wersja-programu.txt     teraz: 12.0.1
+
+   Czytaja go: budowanie na GitHubie i sam program.
+
+   Wgranie bez zmiany tego pliku  -> 12.0.2, 12.0.3 ...
+   Chcesz przeskoczyc              -> wpisz np. 15.0.0
+
+----------------------------------------------------------
+   CO ZAWIERA PROGRAM
+----------------------------------------------------------
+
+   Ekran logowania
+     zdjecie kampusu, godlo bez bialego tla, klawiatura
+     skalowana do wielkosci monitora, kropki PIN-u liczone
+     od szerokosci klawisza, podpowiedz o PIN-ie fabrycznym
+     znika po ustawieniu wlasnego
+
+   Panel
+     tlo kampusu, kafle obiektow z lampkami stanu,
+     wejscie w obiekt kliknieciem, wyjscie krzyzykiem
+     lub klawiszem Escape, scena z animacja slupkow
+     i szlabanu
+
+   Barwy stanow jak na sygnalizacji
+     czerwony zamkniete, zielony przejazd wolny,
+     zloty ruch w toku
+
+   Polecenia
+     pytanie przed kazda zmiana stanu, drugie klikniecie
+     tego samego polecenia nie wysyla kolejnego impulsu
+
+   Ustawienia
+     dwanascie stylow barw z probkami, suwak
+     przezroczystosci tla, powrot do poprzedniej wersji,
+     trzy tryby aktualizacji, kopia bazy
+
+   Aktualizacje
+     sprawdzane po zalogowaniu, nie przed PIN-em,
+     zawsze z pytaniem, jeden pasek postepu
+
+   Jedno uruchomienie naraz
+     druga kopia melduje i konczy sie — dwie pisalyby
+     do tej samej bazy
+
+----------------------------------------------------------
+   GDY WINDOWS ZABLOKUJE PROGRAM
+----------------------------------------------------------
+
+   Inteligentna kontrola aplikacji ocenia kazdy nowo
+   zbudowany plik osobno. W tej wersji plik ma juz pelne
+   dane wydawcy (nazwa, firma, opis, wersja) — wczesniej
+   byl anonimowy, co zwiekszalo szanse blokady.
+
+   Gdyby mimo to zablokowal:
+     kliknij dwa razy  SKROT-NA-PULPIT.bat
+   Utworzy skrot uruchamiajacy program przez Pythona,
+   bez pliku exe. Windows nie ma wtedy czego blokowac,
+   a program dziala tak samo.
+
+   Rozwiazanie na stale: podpis cyfrowy
+   (Azure Trusted Signing, ok. 10 USD miesiecznie).
 
 ----------------------------------------------------------
    GDYBY COS POSZLO NIE TAK
 ----------------------------------------------------------
 
    Ustawienia -> Powrot do poprzedniej wersji
-   Jedno klikniecie, baza zostaje nietknieta.
-
    Ustawienia -> Zapisz kopie bazy
-   Przed kazda wieksza zmiana.
 
-   Gdy Windows zablokuje program (Inteligentna kontrola
-   aplikacji): uruchom uruchom.bat z tego folderu.
-   To nie jest plik wykonywalny, wiec blokada go nie
-   dotyczy, a program dziala tak samo.
+   Baza z numerami, harmonogramami i historia lezy
+   osobno i zadna aktualizacja jej nie rusza.
 
 ==========================================================
 Monter24h.pl
