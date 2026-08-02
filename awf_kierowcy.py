@@ -22,7 +22,7 @@ except ImportError:
     print("Brakuje biblioteki Pillow. Uruchom: pip install pillow")
     sys.exit(1)
 
-VER = "13.0.0"
+VER = "12.0.0"
 
 
 def wersja_programu():
@@ -1357,10 +1357,7 @@ class EkranPin(tk.Frame):
         # wiec z drugiego konca dyzurki widac, ile cyfr juz wpisano.
         ky = ty + p(56)
         prom = max(p(6), int(self.KLW * 0.15) // 2)
-        # Odstep miedzy kropkami — 62% szerokosci klawisza. Wczesniej 40%,
-        # kropki siedzialy blisko siebie i trudno bylo policzyc wpisane cyfry
-        # z odleglosci.
-        odstep = max(p(30), int(self.KLW * 0.62))
+        odstep = max(p(22), int(self.KLW * 0.40))
         ile = max(4, len(self.wpisany))
         x0 = KW / 2 - (ile - 1) * odstep / 2
         for i in range(ile):
@@ -3036,63 +3033,6 @@ class App(tk.Tk):
             b_styl.configure(text="Pokaż kartę" if not karta else "Bez karty")
 
         odswiez_styl()
-
-        # --- powrot do poprzedniej wersji ---
-        # Zdarza sie, ze nowa wersja zostanie zablokowana przez Inteligentna
-        # kontrole aplikacji albo cos w niej nie zadziala. Kopia sprzed
-        # ostatniej aktualizacji lezy w katalogu danych — stad ten powrot.
-        r_powrot = tk.Frame(w, bg=B["tlo"])
-        r_powrot.pack(fill="x", padx=24, pady=(16, 0))
-        try:
-            import aktualizacje
-            poprzednia = aktualizacje.jest_kopia()
-        except (ImportError, AttributeError):
-            poprzednia = None
-
-        naglowek_p = tk.Frame(r_powrot, bg=B["tlo"])
-        naglowek_p.pack(fill="x")
-        tk.Label(naglowek_p, text="Powrót do poprzedniej wersji", bg=B["tlo"],
-                 fg=B["tekst"], font=("Segoe UI Semibold", 12)).pack(side="left")
-
-        def wroc_do_poprzedniej():
-            if not okno_pytania(
-                    self, "Wrócić do poprzedniej wersji?",
-                    f"Program wróci do wersji {poprzednia} — tej sprzed "
-                    "ostatniej aktualizacji.\n\n"
-                    "Zamknie się i uruchomi ponownie. Baza z numerami, "
-                    "harmonogramami i historią zostaje nietknięta.",
-                    tak="Wróć do poprzedniej", nie="Anuluj", ostrzezenie=True):
-                return
-            try:
-                import aktualizacje
-                bat = aktualizacje.przywroc_poprzednia()
-                self.log("powrót do wersji " + str(poprzednia))
-                self._zamykam_sam = True
-                aktualizacje.uruchom_pomocnika(bat)
-                self.after(400, self.destroy)
-            except Exception as blad:               # noqa: BLE001
-                messagebox.showerror("Powrót", str(blad), parent=self)
-
-        if poprzednia:
-            tk.Label(r_powrot,
-                     text=f"Można wrócić do wersji {poprzednia}. Przydaje się, "
-                          "gdy nowa wersja zostanie zablokowana przez Windows "
-                          "albo coś w niej nie działa.",
-                     bg=B["tlo"], fg=B["przygasz"], font=("Segoe UI", 10),
-                     justify="left", wraplength=560).pack(anchor="w",
-                                                          pady=(2, 8))
-            tk.Button(r_powrot, text=f"Wróć do wersji {poprzednia}",
-                      command=wroc_do_poprzedniej, relief="flat", bd=0,
-                      cursor="hand2", bg=B["tlo3"], fg=B["tekst"],
-                      activebackground=B["linia"],
-                      font=("Segoe UI Semibold", 11),
-                      padx=20, pady=10).pack(anchor="w")
-        else:
-            tk.Label(r_powrot,
-                     text="Kopia pojawi się po pierwszej aktualizacji. "
-                          "Wtedy będzie można wrócić jednym kliknięciem.",
-                     bg=B["tlo"], fg=B["przygasz"], font=("Segoe UI", 10)
-                     ).pack(anchor="w", pady=(2, 0))
 
         # --- suwak przezroczystosci tla ---
         r_tlo = tk.Frame(w, bg=B["tlo"])

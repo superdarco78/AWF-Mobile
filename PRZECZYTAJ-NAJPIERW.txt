@@ -1,109 +1,45 @@
 ==========================================================
-   AWF KIEROWCY  13.0.0  —  co zawiera ta paczka
+   AWF KIEROWCY  12.0.0
 ==========================================================
 
-   31 plikow. Wszystko, czego potrzebuje program
-   i budowanie na GitHubie.
+   Numer wersji lezy teraz w zwyklym pliku:
+
+      wersja-programu.txt
+
+   Podmienia sie razem z reszta paczki. Budowanie na
+   GitHubie go nie rusza, wiec numer, ktory tu jest,
+   to numer, ktory zobaczysz w programie.
+
+   Nic nie trzeba edytowac ani kopiowac.
 
 ----------------------------------------------------------
-   CO WGRAC
+   JAK WGRAC — tak jak zawsze
 ----------------------------------------------------------
 
-   WSZYSTKO. Rozpakuj na stare pliki, Ctrl+A,
-   przeciagnij na GitHuba.
+1. Rozpakuj ta paczke na stara, w tym samym folderze.
+2. Ctrl+A, przeciagnij pliki na GitHuba.
+3. Wklej opisy, zatwierdz.
 
-   W paczce jest juz poprawiony plik budowania pod ta
-   sama nazwa, co w repozytorium:
-      .github/workflows/main.yml
-   Nadpisze sie sam razem z reszta.
+   Commit summary:
+   Numer wersji z pliku, kropki PIN-u, pasek postepu
 
-   Zeby na pewno poszedl, wgraj przez:
-      Add file -> Upload files
-   i przeciagnij CALY FOLDER na ramke, ktora sie pojawi.
-   Przeciaganie zaznaczonych plikow (Ctrl+A) pomija
-   podfoldery zaczynajace sie od kropki.
+   Optional extended description:
+   - numer wersji czytany z pliku wersja-programu.txt
+   - kropki PIN-u liczone od szerokosci klawisza
+   - napis "PIN fabryczny 1234" znika po zmianie PIN-u
+   - jeden pasek postepu przy pobieraniu zamiast setki
 
-----------------------------------------------------------
-   NUMER WERSJI — jeden plik
-----------------------------------------------------------
-
-   wersja-programu.txt     teraz: 13.0.0
-
-   Czytaja go: budowanie na GitHubie i sam program.
-
-   Wgranie bez zmiany tego pliku  -> 13.0.1, 13.0.2 ...
-   Chcesz przeskoczyc              -> wpisz np. 15.0.0
-
-   ZMIANA DO SPRAWDZENIA W TEJ WERSJI:
-   odstep miedzy kropkami PIN-u powiekszony z 62 na 97 px
-   (z 40% na 62% szerokosci klawisza). Po aktualizacji
-   kropki beda wyraznie dalej od siebie — po tym poznasz,
-   ze podmiana plikow zadzialala.
-
-----------------------------------------------------------
-   CO ZAWIERA PROGRAM
-----------------------------------------------------------
-
-   Ekran logowania
-     zdjecie kampusu, godlo bez bialego tla, klawiatura
-     skalowana do wielkosci monitora, kropki PIN-u liczone
-     od szerokosci klawisza, podpowiedz o PIN-ie fabrycznym
-     znika po ustawieniu wlasnego
-
-   Panel
-     tlo kampusu, kafle obiektow z lampkami stanu,
-     wejscie w obiekt kliknieciem, wyjscie krzyzykiem
-     lub klawiszem Escape, scena z animacja slupkow
-     i szlabanu
-
-   Barwy stanow jak na sygnalizacji
-     czerwony zamkniete, zielony przejazd wolny,
-     zloty ruch w toku
-
-   Polecenia
-     pytanie przed kazda zmiana stanu, drugie klikniecie
-     tego samego polecenia nie wysyla kolejnego impulsu
-
-   Ustawienia
-     dwanascie stylow barw z probkami, suwak
-     przezroczystosci tla, powrot do poprzedniej wersji,
-     trzy tryby aktualizacji, kopia bazy
-
-   Aktualizacje
-     sprawdzane po zalogowaniu, nie przed PIN-em,
-     zawsze z pytaniem, jeden pasek postepu
-
-   Jedno uruchomienie naraz
-     druga kopia melduje i konczy sie — dwie pisalyby
-     do tej samej bazy
-
-----------------------------------------------------------
-   GDY WINDOWS ZABLOKUJE PROGRAM
-----------------------------------------------------------
-
-   Inteligentna kontrola aplikacji ocenia kazdy nowo
-   zbudowany plik osobno. W tej wersji plik ma juz pelne
-   dane wydawcy (nazwa, firma, opis, wersja) — wczesniej
-   byl anonimowy, co zwiekszalo szanse blokady.
-
-   Gdyby mimo to zablokowal:
-     kliknij dwa razy  SKROT-NA-PULPIT.bat
-   Utworzy skrot uruchamiajacy program przez Pythona,
-   bez pliku exe. Windows nie ma wtedy czego blokowac,
-   a program dziala tak samo.
-
-   Rozwiazanie na stale: podpis cyfrowy
-   (Azure Trusted Signing, ok. 10 USD miesiecznie).
+4. Uruchom program — sam zaproponuje aktualizacje.
 
 ----------------------------------------------------------
    GDYBY COS POSZLO NIE TAK
 ----------------------------------------------------------
 
-   Ustawienia -> Powrot do poprzedniej wersji
-   Ustawienia -> Zapisz kopie bazy
+   Wszystkie wczesniejsze wydania sa na GitHubie:
+   github.com/superdarco78/AWF-Kierowcy/releases
 
-   Baza z numerami, harmonogramami i historia lezy
-   osobno i zadna aktualizacja jej nie rusza.
+   Baza z numerami i historia zostaje nietknieta.
+   Przed wieksza zmiana: Ustawienia -> Zapisz kopie bazy
 
 ==========================================================
 Monter24h.pl
