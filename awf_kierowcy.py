@@ -22,7 +22,7 @@ except ImportError:
     print("Brakuje biblioteki Pillow. Uruchom: pip install pillow")
     sys.exit(1)
 
-VER = "12.0.2"
+VER = "13.0.0"
 
 
 def wersja_programu():
@@ -1357,7 +1357,10 @@ class EkranPin(tk.Frame):
         # wiec z drugiego konca dyzurki widac, ile cyfr juz wpisano.
         ky = ty + p(56)
         prom = max(p(6), int(self.KLW * 0.15) // 2)
-        odstep = max(p(22), int(self.KLW * 0.40))
+        # Odstep miedzy kropkami — 62% szerokosci klawisza. Wczesniej 40%,
+        # kropki siedzialy blisko siebie i trudno bylo policzyc wpisane cyfry
+        # z odleglosci.
+        odstep = max(p(30), int(self.KLW * 0.62))
         ile = max(4, len(self.wpisany))
         x0 = KW / 2 - (ile - 1) * odstep / 2
         for i in range(ile):

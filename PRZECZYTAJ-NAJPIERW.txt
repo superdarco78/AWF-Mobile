@@ -1,5 +1,5 @@
 ==========================================================
-   AWF KIEROWCY  12.0.1  —  co zawiera ta paczka
+   AWF KIEROWCY  13.0.0  —  co zawiera ta paczka
 ==========================================================
 
    31 plikow. Wszystko, czego potrzebuje program
@@ -27,12 +27,18 @@
    NUMER WERSJI — jeden plik
 ----------------------------------------------------------
 
-   wersja-programu.txt     teraz: 12.0.1
+   wersja-programu.txt     teraz: 13.0.0
 
    Czytaja go: budowanie na GitHubie i sam program.
 
-   Wgranie bez zmiany tego pliku  -> 12.0.2, 12.0.3 ...
+   Wgranie bez zmiany tego pliku  -> 13.0.1, 13.0.2 ...
    Chcesz przeskoczyc              -> wpisz np. 15.0.0
+
+   ZMIANA DO SPRAWDZENIA W TEJ WERSJI:
+   odstep miedzy kropkami PIN-u powiekszony z 62 na 97 px
+   (z 40% na 62% szerokosci klawisza). Po aktualizacji
+   kropki beda wyraznie dalej od siebie — po tym poznasz,
+   ze podmiana plikow zadzialala.
 
 ----------------------------------------------------------
    CO ZAWIERA PROGRAM

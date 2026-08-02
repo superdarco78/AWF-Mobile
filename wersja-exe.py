@@ -6,7 +6,7 @@ a takie Inteligentna kontrola aplikacji blokuje najchetniej.
 Numer podstawia budowanie, czytajac go z wersja-programu.txt.
 """
 
-WERSJA = (12, 0, 1, 0)
+WERSJA = (13, 0, 0, 0)
 
 VSVersionInfo(
     ffi=FixedFileInfo(
