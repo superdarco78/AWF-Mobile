@@ -1,0 +1,43 @@
+name: Buduj i wydaj
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'START.txt'
+      - 'PRZECZYTAJ-NAJPIERW.txt'
+      - 'wersja.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wydanie
+  cancel-in-progress: false
+
+jobs:
+  buduj:
+    runs-on: windows-latest
+    if: "!contains(github.event.head_commit.message, '[bez wydania]')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ustal numer wersji
+        id: w
+        shell: bash
+        run: |
+          BAZA=$(head -1 wersja-programu.txt | tr -d '[:space:]' | sed 's/^v//')
+          if [ -z "$BAZA" ]; then
+            echo "::error::Pusty plik wersja-programu.txt"; exit 1
+          fi
+          NOWA="$BAZA"
+          while git rev-parse "v$NOWA" >/dev/null 2>&1; do
+            GLOWNA=$(echo "$NOWA" | cut -d. -f1)
+            SRODEK=$(echo "$NOWA" | cut -d. -f2)
+            MALA=$(echo "$NOWA" | cut -d. -f3)
+            [ -z "$SRODEK" ] &&
