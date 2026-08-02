@@ -1,16 +1,23 @@
 ==========================================================
-   AWF KIEROWCY  12.0.0
+   AWF KIEROWCY  13.0.2
 ==========================================================
 
-   Numer wersji lezy teraz w zwyklym pliku:
+   Kropki PIN-u sa juz stale.
 
-      wersja-programu.txt
+   Bylo: rzad kropek rosnal w trakcie pisania. Po piatej
+   cyfrze pojawiala sie piata kropka, caly rzad przesuwal
+   sie w bok, a program przyjmowal do osmiu cyfr — nawet
+   gdy PIN ma cztery.
 
-   Podmienia sie razem z reszta paczki. Budowanie na
-   GitHubie go nie rusza, wiec numer, ktory tu jest,
-   to numer, ktory zobaczysz w programie.
+   Jest: tyle kropek, ile cyfr ma ustawiony PIN. Nic sie
+   nie przesuwa, a klawiatura przestaje przyjmowac cyfry
+   po ostatniej kropce.
 
-   Nic nie trzeba edytowac ani kopiowac.
+   Dlugosc jest zapamietana w bazie ("dlugosc_pin").
+   Zmieniasz PIN na szesciocyfrowy — kropek robi sie szesc,
+   od razu, bez uruchamiania programu na nowo.
+
+   Stara baza, bez tego wpisu, dostaje cztery kropki.
 
 ----------------------------------------------------------
    JAK WGRAC — tak jak zawsze
@@ -21,23 +28,32 @@
 3. Wklej opisy, zatwierdz.
 
    Commit summary:
-   Numer wersji z pliku, kropki PIN-u, pasek postepu
+   Stala liczba kropek PIN-u, numer 13.0.2
 
    Optional extended description:
-   - numer wersji czytany z pliku wersja-programu.txt
-   - kropki PIN-u liczone od szerokosci klawisza
-   - napis "PIN fabryczny 1234" znika po zmianie PIN-u
-   - jeden pasek postepu przy pobieraniu zamiast setki
+   - kropek tyle, ile cyfr ma ustawiony PIN, nie wiecej
+   - klawiatura nie przyjmuje cyfr ponad dlugosc PIN-u
+   - dlugosc PIN-u zapamietana w bazie (dlugosc_pin)
+   - zmiana PIN-u przelicza kropki bez restartu programu
+   - numer wersji 13.0.2 w pliku, instalatorze i manifescie
 
 4. Uruchom program — sam zaproponuje aktualizacje.
+
+----------------------------------------------------------
+   DO ZROBIENIA RECZNIE — JEDEN RAZ
+----------------------------------------------------------
+
+   Skasuj z folderu plik START.txt.
+
+   Zostal po wersji 7.1.2 i mowi co innego niz ten plik.
+   Paczka nie umie kasowac plikow, wiec musi to zrobic
+   reka — inaczej beda dwie instrukcje, jedna nieprawdziwa.
 
 ----------------------------------------------------------
    GDYBY COS POSZLO NIE TAK
 ----------------------------------------------------------
 
-   Wszystkie wczesniejsze wydania sa na GitHubie:
-   github.com/superdarco78/AWF-Kierowcy/releases
-
+   Wszystkie wczesniejsze wydania sa na GitHubie.
    Baza z numerami i historia zostaje nietknieta.
    Przed wieksza zmiana: Ustawienia -> Zapisz kopie bazy
 

@@ -29,7 +29,7 @@ import urllib.error
 import urllib.request
 import zipfile
 
-REPO = "superdarco78/AWF-Kierowcy"
+REPO = "superdarco78/AWF-Mobile"   # nazwa repozytorium na GitHubie
 ADRES_WERSJI = f"https://raw.githubusercontent.com/{REPO}/main/wersja.json"
 LIMIT_S = 8
 
@@ -315,6 +315,60 @@ def odczytaj_wynik():
     return rodzaj.strip(), tresc.strip()
 
 
+def katalog_danych():
+    """Katalog na dane programu — tam trzymamy kopie poprzedniej wersji."""
+    baza = os.environ.get("APPDATA") or os.path.expanduser("~")
+    kat = os.path.join(baza, "AWF-Kierowcy")
+    os.makedirs(kat, exist_ok=True)
+    return kat
+
+
+def jest_kopia():
+    """Czy jest do czego wrocic i jaka to wersja."""
+    kat = os.path.join(katalog_danych(), "poprzednia-wersja")
+    if not os.path.isdir(kat) or not os.listdir(kat):
+        return None
+    znacznik = os.path.join(kat, "wersja-programu.txt")
+    try:
+        with open(znacznik, encoding="utf-8") as f:
+            return f.read().strip() or "poprzednia"
+    except OSError:
+        return "poprzednia"
+
+
+def przywroc_poprzednia():
+    """Wraca do wersji sprzed ostatniej aktualizacji.
+
+    Uzywa tej samej kopii, ktora pomocnik odklada przed podmiana plikow.
+    Dziala tak samo jak aktualizacja, tylko w druga strone: zamyka program,
+    kopiuje pliki z powrotem i uruchamia go ponownie.
+    """
+    kopia = os.path.join(katalog_danych(), "poprzednia-wersja")
+    if not os.path.isdir(kopia) or not os.listdir(kopia):
+        raise RuntimeError("Nie ma kopii poprzedniej wersji.")
+    docelowy = katalog_programu()
+    tymczasowy = tempfile.mkdtemp(prefix="awf-powrot-")
+    plik = os.path.join(tymczasowy, "przywroc.bat")
+    tresc = POMOCNIK.format(
+        pid=os.getpid(),
+        zrodlo=kopia,
+        docelowy=docelowy,
+        kopia=os.path.join(tymczasowy, "kopia-przed-powrotem"),
+        nazwa_exe=nazwa_programu(),
+        nazwa_skryptu=(os.path.basename(os.path.abspath(sys.argv[0]))
+                       or "awf_kierowcy.py"),
+        polecenie_zrodel='"%s" "%s"' % (
+            sys.executable,
+            os.path.basename(os.path.abspath(sys.argv[0])) or "awf_kierowcy.py"),
+        tymczasowy=tymczasowy,
+        plik_wyniku=plik_wyniku(),
+        wersja="poprzednia",
+    )
+    with open(plik, "w", encoding="utf-8") as f:
+        f.write(tresc)
+    return plik
+
+
 def przygotuj_pomocnika(katalog_nowych, katalog_programu, sciezka_programu=None,
                         wersja=""):
     """Tworzy plik wsadowy, ktory podmieni pliki po zamknieciu programu.
@@ -330,7 +384,7 @@ def przygotuj_pomocnika(katalog_nowych, katalog_programu, sciezka_programu=None,
         pid=os.getpid(),
         zrodlo=katalog_nowych,
         docelowy=katalog_programu,
-        kopia=os.path.join(tymczasowy, "kopia"),
+        kopia=os.path.join(katalog_danych(), "poprzednia-wersja"),
         nazwa_exe=nazwa_programu(),
         nazwa_skryptu=skrypt,
         polecenie_zrodel='"%s" "%s"' % (sys.executable, skrypt),
