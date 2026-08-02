@@ -1,16 +1,42 @@
 ==========================================================
-   AWF KIEROWCY  12.0.0
+   AWF KIEROWCY  13.0.4
 ==========================================================
 
-   Numer wersji lezy teraz w zwyklym pliku:
+   Ustawienia -> Wyglad ekranu logowania
 
-      wersja-programu.txt
+   Nowy guzik w Ustawieniach otwiera okno, w ktorym po lewej
+   stoi zywy ekran logowania, a po prawej suwaki. Ruszasz
+   suwakiem — ekran przerysowuje sie od razu. To nie rysunek
+   ani podglad: to ta sama klasa, ktora widac przy
+   uruchomieniu programu, wiec widzisz dokladnie to, co
+   dostanie dyzurny.
 
-   Podmienia sie razem z reszta paczki. Budowanie na
-   GitHubie go nie rusza, wiec numer, ktory tu jest,
-   to numer, ktory zobaczysz w programie.
+   Do ustawienia:
 
-   Nic nie trzeba edytowac ani kopiowac.
+     GODLO         wysokosc, wielkosc, zloty pierscien,
+                   poswiata pod spodem
+     NAZWA         wysokosc, wielkosc liter, kreska pod
+                   nazwa: wysokosc i dlugosc
+     PODTYTUL      wysokosc, wielkosc liter
+     KROPKI PIN-U  wysokosc, srednica, odstep oraz przelacznik
+                   "trzymaj sie klawiatury" (wtedy kropki same
+                   siadaja nad klawiatura i rozstawiaja sie
+                   na jej szerokosc — tak jak w 13.0.3)
+     KLAWIATURA    wysokosc, szerokosc i wysokosc klawisza,
+                   odstep, zaokraglenie narozy
+     STOPKA        wysokosc obu napisow i to, czy maja byc
+
+   To te same pokretla, co w podgladzie HTML, jeden do jednego.
+
+   Ustawienia leza w bazie pod kluczem "uklad_logowania".
+   Ida wiec razem z baza — takze na OneDrive, wiec na drugim
+   komputerze ekran wyglada tak samo, bez ustawiania od nowa.
+
+   Guzik "Ustawienia fabryczne" wraca do wygladu z 13.0.3.
+   Zapis idzie sam, pol sekundy po zatrzymaniu suwaka.
+
+   Bez ruszania suwakow ekran wyglada dokladnie tak jak
+   w 13.0.3 — sprawdzone co do piksela.
 
 ----------------------------------------------------------
    JAK WGRAC — tak jak zawsze
@@ -21,25 +47,31 @@
 3. Wklej opisy, zatwierdz.
 
    Commit summary:
-   Numer wersji z pliku, kropki PIN-u, pasek postepu
+   Ustawianie wygladu ekranu logowania, numer 13.0.4
 
    Optional extended description:
-   - numer wersji czytany z pliku wersja-programu.txt
-   - kropki PIN-u liczone od szerokosci klawisza
-   - napis "PIN fabryczny 1234" znika po zmianie PIN-u
-   - jeden pasek postepu przy pobieraniu zamiast setki
+   - Ustawienia -> Wyglad ekranu logowania: zywy podglad i suwaki
+   - godlo, nazwa, kreska, podtytul, kropki, klawiatura, stopka
+   - uklad zapisany w bazie pod kluczem uklad_logowania
+   - guzik powrotu do ustawien fabrycznych
+   - bez zmian suwakow ekran wyglada jak w 13.0.3
 
 4. Uruchom program — sam zaproponuje aktualizacje.
 
 ----------------------------------------------------------
-   GDYBY COS POSZLO NIE TAK
+   SPRAWDZONE NA URUCHOMIONYM PROGRAMIE
 ----------------------------------------------------------
 
-   Wszystkie wczesniejsze wydania sa na GitHubie:
-   github.com/superdarco78/AWF-Kierowcy/releases
+   Otwarcie okna, ruch suwakami godla, nazwy i kropek:
+   zywy ekran przerysowal sie za kazdym razem. Przy
+   ustawieniach fabrycznych kropki stoja rowno z lewa
+   krawedzia klawiatury, odstep 19 px — tak jak w 13.0.3.
 
-   Baza z numerami i historia zostaje nietknieta.
-   Przed wieksza zmiana: Ustawienia -> Zapisz kopie bazy
+----------------------------------------------------------
+   DO ZROBIENIA RECZNIE — JESLI JESZCZE NIE
+----------------------------------------------------------
+
+   Skasuj z folderu plik START.txt. Zostal po wersji 7.1.2.
 
 ==========================================================
 Monter24h.pl

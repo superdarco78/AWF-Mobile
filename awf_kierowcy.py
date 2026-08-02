@@ -22,7 +22,7 @@ except ImportError:
     print("Brakuje biblioteki Pillow. Uruchom: pip install pillow")
     sys.exit(1)
 
-VER = "12.0.3"
+VER = "13.0.4"
 
 
 def wersja_programu():
@@ -352,9 +352,46 @@ def zakoduj_pin(pin):
     return hashlib.sha256((SOL + str(pin)).encode()).hexdigest()
 
 
+# Uklad ekranu logowania. Wszystkie liczby sa w ukladzie karty 470x790 —
+# program przelicza je na wielkosc okna, wiec na kazdym monitorze wychodzi
+# to samo rozmieszczenie. "y" znaczy wysokosc od gory karty.
+UKLAD = {
+    "godlo_y": 40, "godlo_r": 116, "godlo_pierscien": True,
+    "godlo_poswiata": True,
+    "nazwa_y": 198, "nazwa_px": 31,
+    "kreska": True, "kreska_y": 220, "kreska_dl": 100,
+    "pod_y": 238, "pod_px": 18,
+    "krop_auto": True, "krop_y": 266, "krop_sr": 18, "krop_od": 52,
+    "kl_y": 300, "kl_w": 132, "kl_h": 76, "kl_od": 16, "kl_prom": 16,
+    "fab": True, "fab_y": 680,
+    "zap": True, "zap_y": 738,
+}
+
+
+def uklad_logowania(dane):
+    """Uklad z bazy uzupelniony wzorcem.
+
+    Baza ze starszej wersji nie ma tego wpisu wcale, a nowsza moze miec
+    tylko czesc kluczy — braki bierzemy z wzorca, zeby ekran zawsze mial
+    komplet liczb.
+    """
+    u = dict(UKLAD)
+    zapisane = (dane or {}).get("uklad_logowania") or {}
+    for k, wzor in UKLAD.items():
+        if k not in zapisane:
+            continue
+        try:
+            u[k] = bool(zapisane[k]) if isinstance(wzor, bool) else int(zapisane[k])
+        except (TypeError, ValueError):
+            pass
+    return u
+
+
 def domyslna_baza():
     return {
         "pin": zakoduj_pin("1234"),
+        "dlugosc_pin": 4,
+        "uklad_logowania": dict(UKLAD),
         "motyw": "ciemny",
         "start_pelny": False,
         "admin_haslo": "",
@@ -1011,7 +1048,7 @@ class EkranPin(tk.Frame):
     KPROM = 16
     MARG = 70          # miejsce na cien dookola karty (przeliczane)
 
-    def __init__(self, rodzic, sprawdz, po_zalogowaniu):
+    def __init__(self, rodzic, sprawdz, po_zalogowaniu, podglad=False):
         super().__init__(rodzic, bg=B["tlo"])
         self.sprawdz = sprawdz
         self.po_zalogowaniu = po_zalogowaniu
@@ -1019,17 +1056,25 @@ class EkranPin(tk.Frame):
         # klawisze musza byc wieksze, bo nie maja tla, ktore je zbiera.
         dane = getattr(rodzic, "d", {}) or {}
         self.z_karta = bool(dane.get("karta_logowania", False))
+        self.podglad = bool(podglad)
         # Wymiary podstawowe. Program przelicza je przy kazdej zmianie
         # rozmiaru okna, zeby na duzym monitorze klawiatura byla duza,
-        # a na malym laptopie miescila sie w calosci.
-        self.BAZA = ((440, 700, 118, 68, 13, 276) if self.z_karta
-                     else (470, 790, 132, 76, 16, 300))
+        # a na malym laptopie miescila sie w calosci. Same liczby siedza
+        # w bazie — da sie je przestawic w Ustawieniach.
+        self.KPROM = UKLAD["kl_prom"]
         self._sr = 1.0
-        self._przelicz(1.0)
+        self.wczytaj_uklad(dane)
 
         # Czy PIN jest wciaz fabryczny — od tego zalezy, czy pokazujemy
         # podpowiedz z numerem 1234.
         self.pin_fabryczny = dane.get("pin") == zakoduj_pin("1234")
+
+        # Ile kropek pokazac i ile cyfr przyjac. Liczba jest stala —
+        # wynika z dlugosci ustawionego PIN-u, nie z tego, ile juz
+        # wpisano. Wczesniej rzad rosl w trakcie pisania, wiec kropki
+        # przesuwaly sie pod palcem i mozna bylo wbic wiecej cyfr,
+        # niz PIN ma naprawde.
+        self.dlugosc_pin = self._ile_cyfr(dane)
 
         self.wpisany = ""
         self.proby = 0
@@ -1062,8 +1107,37 @@ class EkranPin(tk.Frame):
         self.bind("<Configure>", self._na_zmiane)
         rodzic.bind("<Configure>", self._na_zmiane, add="+")
         self._pilnuj(0)
-        self.bind_all("<Key>", self._klawisz)
+        # W podgladzie z Ustawien nie przechwytujemy klawiszy — inaczej
+        # cyfry wpisywane w okienku obok trafialyby do ekranu logowania.
+        if not self.podglad:
+            self.bind_all("<Key>", self._klawisz)
         self.after(60, self._na_zmiane)
+
+    def wczytaj_uklad(self, dane=None):
+        """Bierze uklad z bazy i przelicza wymiary. Wywolywane takze przy
+        kazdym ruchu suwaka w oknie ustawien wygladu."""
+        if dane is None:
+            dane = getattr(self.master, "d", {}) or {}
+        self.U = uklad_logowania(dane)
+        kw, kh = (440, 700) if self.z_karta else (470, 790)
+        self.BAZA = (kw, kh, self.U["kl_w"], self.U["kl_h"],
+                     self.U["kl_od"], self.U["kl_y"])
+        self.KPROM = self.U["kl_prom"]
+        self._przelicz(self._sr)
+
+    @staticmethod
+    def _ile_cyfr(dane):
+        """Dlugosc ustawionego PIN-u, zawsze miedzy 4 a 8.
+
+        PIN lezy w bazie jako suma kontrolna, wiec dlugosci nie da sie
+        z niego odczytac — zapisujemy ja osobno przy kazdej zmianie.
+        Gdy jej nie ma (baza ze starszej wersji), zostaja cztery cyfry.
+        """
+        try:
+            ile = int(dane.get("dlugosc_pin", 4) or 4)
+        except (TypeError, ValueError):
+            ile = 4
+        return max(4, min(8, ile))
 
     # ------------------------------------------------------------------
     # czcionki i ksztalty
@@ -1305,16 +1379,18 @@ class EkranPin(tk.Frame):
                    fill=(255, 255, 255, 60), width=1)
 
         # --- godlo ---
-        gr = p(100 if self.z_karta else 116)
-        gy = p(40)
+        U = self.U
+        gr = p(U["godlo_r"])
+        gy = p(U["godlo_y"])
         # Godlo nie ma juz bialego kola — poswiata daje mu oddech na zdjeciu
         # i odkleja je od tla, zeby nie wtapialo sie w budynek.
-        pos = Image.new("RGBA", (int(gr * 1.7),) * 2, (0, 0, 0, 0))
-        ImageDraw.Draw(pos).ellipse(
-            [gr * 0.22, gr * 0.22, gr * 1.48, gr * 1.48],
-            fill=(0, 0, 0, 96) if not B["welon"] else (255, 255, 255, 120))
-        karta.alpha_composite(pos.filter(ImageFilter.GaussianBlur(p(17))),
-                              ((KW - pos.width) // 2, gy - int(gr * 0.35)))
+        if U["godlo_poswiata"]:
+            pos = Image.new("RGBA", (int(gr * 1.7),) * 2, (0, 0, 0, 0))
+            ImageDraw.Draw(pos).ellipse(
+                [gr * 0.22, gr * 0.22, gr * 1.48, gr * 1.48],
+                fill=(0, 0, 0, 96) if not B["welon"] else (255, 255, 255, 120))
+            karta.alpha_composite(pos.filter(ImageFilter.GaussianBlur(p(17))),
+                                  ((KW - pos.width) // 2, gy - int(gr * 0.35)))
         godlo = None
         try:
             from tlo_wbudowane import godlo as godlo_z_kodu
@@ -1331,35 +1407,49 @@ class EkranPin(tk.Frame):
         if godlo is not None:
             karta.alpha_composite(godlo.resize((gr, gr), Image.LANCZOS),
                                   ((KW - gr) // 2, gy))
-        pier = int(gr * 1.16)
-        d.ellipse([(KW - pier) // 2, gy - int(gr * 0.08),
-                   (KW + pier) // 2, gy - int(gr * 0.08) + pier],
-                  outline=M0["zloto"] + (130,), width=max(1, p(1)))
+        if U["godlo_pierscien"]:
+            pier = int(gr * 1.16)
+            d.ellipse([(KW - pier) // 2, gy - int(gr * 0.08),
+                       (KW + pier) // 2, gy - int(gr * 0.08) + pier],
+                      outline=M0["zloto"] + (130,), width=max(1, p(1)))
 
         # --- nazwa i podtytul ---
-        ty = gy + gr + p(42)
-        cz_nazwa = self._czcionka(p(27 if self.z_karta else 31), True)
+        ty = p(U["nazwa_y"])
+        cz_nazwa = self._czcionka(p(U["nazwa_px"]), True)
         d.text((KW / 2 + p(1), ty + p(1)), NAZWA, font=cz_nazwa,
                fill=(0, 0, 0, 130), anchor="mm")
         d.text((KW / 2, ty), NAZWA, font=cz_nazwa, fill=M0["zloto"],
                anchor="mm")
-        d.line([KW / 2 - p(50), ty + p(22), KW / 2 + p(50), ty + p(22)],
-               fill=M0["zloto"] + (190,), width=max(1, p(1)))
-        cz_pod = self._czcionka(p(18))
-        d.text((KW / 2 + p(1), ty + p(41)), PODTYTUL, font=cz_pod,
+        if U["kreska"]:
+            pol, ky_kr = p(U["kreska_dl"]) // 2, p(U["kreska_y"])
+            d.line([KW / 2 - pol, ky_kr, KW / 2 + pol, ky_kr],
+                   fill=M0["zloto"] + (190,), width=max(1, p(1)))
+        cz_pod = self._czcionka(p(U["pod_px"]))
+        typ = p(U["pod_y"])
+        d.text((KW / 2 + p(1), typ + p(1)), PODTYTUL, font=cz_pod,
                fill=(0, 0, 0, 110), anchor="mm")
-        d.text((KW / 2, ty + p(40)), PODTYTUL, font=cz_pod, fill=M0["pod"],
+        d.text((KW / 2, typ), PODTYTUL, font=cz_pod, fill=M0["pod"],
                anchor="mm")
 
         # --- kropki PIN-u ---
-        # Wielkosc liczona od klawisza, nie stala: kropka ma 15% szerokosci
-        # klawisza, odstep 40%. Przy wiekszej klawiaturze rosna razem z nia,
-        # wiec z drugiego konca dyzurki widac, ile cyfr juz wpisano.
-        ky = ty + p(56)
-        prom = max(p(6), int(self.KLW * 0.15) // 2)
-        odstep = max(p(22), int(self.KLW * 0.40))
-        ile = max(4, len(self.wpisany))
-        x0 = KW / 2 - (ile - 1) * odstep / 2
+        # Kropki nalezaly wczesniej do podtytulu: wisialy tuz pod nim, daleko
+        # od klawiszy, i przy dluzszym PIN-ie rozjezdzaly sie wlasnym rytmem.
+        # Teraz naleza do klawiatury — siedza tuz nad nia i rozstawiaja sie
+        # dokladnie na jej szerokosc, od lewej krawedzi pierwszego klawisza
+        # do prawej krawedzi ostatniego. Cztery cyfry czy osiem, rzad zawsze
+        # konczy sie tam, gdzie klawiatura.
+        prom = max(p(4), p(U["krop_sr"]) // 2)
+        ile = self.dlugosc_pin
+        if U["krop_auto"]:
+            ky = self.SY - 2 * prom - p(16)
+            szer_kl = 3 * self.KLW + 2 * self.ODST
+            skl = (KW - szer_kl) // 2
+            odstep = (szer_kl - 2 * prom) / max(1, ile - 1)
+            x0 = skl + prom
+        else:
+            ky = p(U["krop_y"])
+            odstep = p(U["krop_od"])
+            x0 = KW / 2 - (ile - 1) * odstep / 2
         for i in range(ile):
             x = x0 + i * odstep
             pole = [x - prom, ky, x + prom, ky + 2 * prom]
@@ -1465,23 +1555,27 @@ class EkranPin(tk.Frame):
                 d.rounded_rectangle(
                     [sx, py + p(22), sx + max(p(8), int(szer * ulamek)),
                      py + p(29)], radius=p(4), fill=M0["zloto"])
-        elif self.pin_fabryczny:
+        elif self.pin_fabryczny and U["fab"]:
             # Podpowiedz znika, gdy tylko ktos ustawi wlasny PIN — inaczej
             # wisialaby na ekranie na stale i podawala numer, ktory juz
             # nie dziala.
             cz_st = self._czcionka(p(15))
             napis = "PIN fabryczny 1234 — zmień po pierwszym logowaniu"
+            fy = p(U["fab_y"])
             if not self.z_karta:
-                d.text((KW / 2 + p(1), py + p(5)), napis,
+                d.text((KW / 2 + p(1), fy + p(1)), napis,
                        font=cz_st, fill=(0, 0, 0, 120), anchor="mm")
-            d.text((KW / 2, py + p(4)), napis,
-                   font=cz_st, fill=M0["pod"], anchor="mm")
+            d.text((KW / 2, fy), napis, font=cz_st, fill=M0["pod"], anchor="mm")
 
-        d.text((KW / 2, py + p(62)), "Nie pamiętam PIN-u",
-               font=self._czcionka(p(16)), fill=M0["zloto"], anchor="mm")
-        d.line([KW / 2 - p(82), py + p(76), KW / 2 + p(82), py + p(76)],
-               fill=M0["zloto"] + (160,), width=max(1, p(1)))
-        self._odnosnik = (KW / 2 - p(90), py + p(48), p(180), p(36))
+        if U["zap"]:
+            zy = p(U["zap_y"])
+            d.text((KW / 2, zy), "Nie pamiętam PIN-u",
+                   font=self._czcionka(p(16)), fill=M0["zloto"], anchor="mm")
+            d.line([KW / 2 - p(82), zy + p(14), KW / 2 + p(82), zy + p(14)],
+                   fill=M0["zloto"] + (160,), width=max(1, p(1)))
+            self._odnosnik = (KW / 2 - p(90), zy - p(14), p(180), p(36))
+        else:
+            self._odnosnik = (0, 0, 0, 0)
 
         plotno.alpha_composite(karta, (M, M))
         karta = plotno
@@ -1563,7 +1657,7 @@ class EkranPin(tk.Frame):
         elif znak == "OK":
             self._sprawdz()
             return
-        elif len(self.wpisany) < 8:
+        elif len(self.wpisany) < self.dlugosc_pin:
             self.wpisany += znak
         self.info = ""
         self.rysuj()
@@ -1579,6 +1673,12 @@ class EkranPin(tk.Frame):
             self.klik("C")
 
     def _sprawdz(self):
+        # W podgladzie z Ustawien PIN nic nie otwiera i nic nie blokuje —
+        # klawiatura sluzy tylko do zobaczenia, jak wygladaja kropki.
+        if self.podglad:
+            self.wpisany = ""
+            self.rysuj()
+            return
         if self.sprawdz(self.wpisany):
             self.unbind_all("<Key>")
             self.po_zalogowaniu()
@@ -1625,6 +1725,8 @@ class EkranPin(tk.Frame):
         self.rysuj()
 
     def _zapomnialem(self):
+        if self.podglad:
+            return
         """Odzyskanie dostepu: haslem administratora albo kodem z poczty."""
         d = self.master.d if hasattr(self.master, "d") else wczytaj()
 
@@ -1761,8 +1863,10 @@ class EkranPin(tk.Frame):
 
             if uprawniony:
                 d["pin"] = zakoduj_pin(nowy)
+                d["dlugosc_pin"] = len(nowy)
                 zapisz(d)
                 w.destroy()
+                self.dlugosc_pin = self._ile_cyfr(d)
                 self.proby = 0
                 self.zablokowany = False
                 self.wpisany = ""
@@ -2951,7 +3055,8 @@ class App(tk.Tk):
                        font=("Segoe UI", 12)).pack(anchor="w", padx=24,
                                                    pady=(0, 14))
 
-        self._przyciski(w, [("Co nowego w kolejnych wersjach", self.okno_historii, False),
+        self._przyciski(w, [("Wygląd ekranu logowania", self.edytuj_logowanie, False),
+                            ("Co nowego w kolejnych wersjach", self.okno_historii, False),
                             ("Zapisz kopię bazy", self.kopia_zapisz, False),
                             ("Wczytaj kopię", self.kopia_wczytaj, False),
                             ("Zmień PIN", self.zmien_pin, False),
@@ -3642,16 +3747,196 @@ class App(tk.Tk):
                                    parent=self)
             return
         self.d["pin"] = zakoduj_pin(nowy)
+        self.d["dlugosc_pin"] = len(nowy)
         zapisz(self.d)
-        # Ekran logowania przestaje pokazywac podpowiedz z fabrycznym PIN-em.
+        # Ekran logowania przestaje pokazywac podpowiedz z fabrycznym PIN-em
+        # i od razu rysuje tyle kropek, ile ma nowy PIN.
         ekran = getattr(self, "ekran_pin", None)
         try:
             if ekran is not None and ekran.winfo_exists():
                 ekran.pin_fabryczny = (nowy == "1234")
+                ekran.dlugosc_pin = ekran._ile_cyfr(self.d)
         except tk.TclError:
             pass
         messagebox.showinfo("PIN", "PIN zmieniony.", parent=self)
         self.log("zmieniono PIN")
+
+    # ------------------------------------------------------------------
+    # wyglad ekranu logowania
+    # ------------------------------------------------------------------
+
+    SUWAKI = [
+        ("GODŁO", [("Wysokość na ekranie", "godlo_y", 0, 300),
+                   ("Wielkość", "godlo_r", 50, 240)],
+                  [("Złoty pierścień", "godlo_pierscien"),
+                   ("Poświata pod godłem", "godlo_poswiata")]),
+        ("NAZWA", [("Wysokość na ekranie", "nazwa_y", 60, 460),
+                   ("Wielkość liter", "nazwa_px", 16, 56),
+                   ("Wysokość kreski", "kreska_y", 60, 480),
+                   ("Długość kreski", "kreska_dl", 30, 380)],
+                  [("Kreska pod nazwą", "kreska")]),
+        ("PODTYTUŁ", [("Wysokość na ekranie", "pod_y", 80, 500),
+                      ("Wielkość liter", "pod_px", 10, 34)], []),
+        ("KROPKI PIN-U", [("Wysokość na ekranie", "krop_y", 100, 560),
+                          ("Średnica", "krop_sr", 8, 44),
+                          ("Odstęp między nimi", "krop_od", 20, 120)],
+                         [("Trzymaj się klawiatury "
+                           "(wtedy dwa suwaki niżej nic nie robią)",
+                           "krop_auto")]),
+        ("KLAWIATURA", [("Wysokość na ekranie", "kl_y", 150, 520),
+                        ("Szerokość klawisza", "kl_w", 70, 180),
+                        ("Wysokość klawisza", "kl_h", 40, 120),
+                        ("Odstęp", "kl_od", 4, 40),
+                        ("Zaokrąglenie", "kl_prom", 0, 40)], []),
+        ("STOPKA", [("Wysokość napisu o PIN-ie", "fab_y", 400, 900),
+                    ("Wysokość „Nie pamiętam PIN-u”", "zap_y", 420, 940)],
+                   [("Pokazuj napis o PIN-ie fabrycznym", "fab"),
+                    ("Pokazuj „Nie pamiętam PIN-u”", "zap")]),
+    ]
+
+    def edytuj_logowanie(self):
+        """Ustawianie wygladu ekranu logowania na zywym ekranie.
+
+        Po lewej stoi prawdziwy ekran logowania — nie rysunek, tylko ta sama
+        klasa, ktora widac przy uruchomieniu. Kazdy ruch suwaka przerysowuje
+        go od razu, wiec widac dokladnie to, co dostanie dyzurny.
+        """
+        w = tk.Toplevel(self)
+        w.title("Wygląd ekranu logowania")
+        w.configure(bg=B["tlo"])
+        w.transient(self)
+        w.geometry("1200x820")
+        w.minsize(940, 620)
+
+        lewa = tk.Frame(w, bg=B["tlo"], width=560)
+        lewa.pack(side="left", fill="both", expand=True)
+        lewa.pack_propagate(False)
+        # EkranPin czyta baze z rodzica — podajemy mu te sama, ktora
+        # zapisujemy, wiec podglad i zapis nie moga sie rozjechac.
+        lewa.d = self.d
+        ekran = EkranPin(lewa, lambda _pin: False, lambda: None, podglad=True)
+        ekran.pack(fill="both", expand=True)
+        ekran.pin_fabryczny = True
+        ekran.wpisany = "12"
+
+        prawa = tk.Frame(w, bg=B["tlo2"], width=440)
+        prawa.pack(side="right", fill="y")
+        prawa.pack_propagate(False)
+
+        tk.Label(prawa, text="WYGLĄD EKRANU LOGOWANIA", bg=B["tlo2"],
+                 fg=B["zloto"], font=("Segoe UI Semibold", 9),
+                 anchor="w", padx=16, pady=12).pack(fill="x")
+        tk.Label(prawa, text="Liczby są w układzie karty 470 × 790. Program "
+                             "przelicza je na wielkość okna, więc na każdym "
+                             "monitorze wychodzi to samo rozmieszczenie.",
+                 bg=B["tlo2"], fg=B["przygasz"], font=("Segoe UI", 9),
+                 wraplength=400, justify="left", anchor="w",
+                 padx=16).pack(fill="x", pady=(0, 8))
+
+        plotno = tk.Canvas(prawa, bg=B["tlo2"], highlightthickness=0)
+        belka = ttk.Scrollbar(prawa, orient="vertical", command=plotno.yview)
+        wnetrze = tk.Frame(plotno, bg=B["tlo2"])
+        wnetrze.bind("<Configure>",
+                     lambda _e: plotno.configure(scrollregion=plotno.bbox("all")))
+        plotno.create_window((0, 0), window=wnetrze, anchor="nw", width=402)
+        plotno.configure(yscrollcommand=belka.set)
+
+        stopka = tk.Frame(prawa, bg=B["tlo2"])
+        stopka.pack(side="bottom", fill="x", padx=16, pady=12)
+        belka.pack(side="right", fill="y")
+        plotno.pack(side="left", fill="both", expand=True)
+
+        plotno.bind_all("<MouseWheel>",
+                        lambda e: plotno.yview_scroll(-1 if e.delta > 0 else 1,
+                                                      "units"))
+
+        u = uklad_logowania(self.d)
+        zmienne = {}
+        czekam = {"id": None}
+
+        def zmiana(*_a):
+            nowy = {}
+            for k, v in zmienne.items():
+                nowy[k] = bool(v.get()) if isinstance(v, tk.BooleanVar) \
+                    else int(v.get())
+            self.d["uklad_logowania"] = nowy
+            try:
+                ekran.wczytaj_uklad(self.d)
+                ekran.rysuj()
+            except tk.TclError:
+                return
+            # Zapis dopiero, gdy suwak stanie — inaczej plik lecialby
+            # na dysk kilkadziesiat razy na sekunde.
+            if czekam["id"]:
+                try:
+                    w.after_cancel(czekam["id"])
+                except tk.TclError:
+                    pass
+            czekam["id"] = w.after(500, lambda: zapisz(self.d))
+
+        for tytul, suwaki, ptaszki in self.SUWAKI:
+            tk.Label(wnetrze, text=tytul, bg=B["tlo2"], fg=B["zloto"],
+                     font=("Segoe UI Semibold", 8), anchor="w",
+                     padx=16).pack(fill="x", pady=(14, 2))
+            for etykieta, klucz in ptaszki:
+                v = tk.BooleanVar(value=bool(u[klucz]))
+                zmienne[klucz] = v
+                tk.Checkbutton(wnetrze, text=etykieta, variable=v,
+                               command=zmiana, bg=B["tlo2"], fg=B["tekst"],
+                               selectcolor=B["tlo3"], activebackground=B["tlo2"],
+                               activeforeground=B["tekst"], anchor="w",
+                               wraplength=360, justify="left",
+                               font=("Segoe UI", 10)).pack(fill="x", padx=12)
+            for etykieta, klucz, od, do in suwaki:
+                wiersz = tk.Frame(wnetrze, bg=B["tlo2"])
+                wiersz.pack(fill="x", padx=16, pady=1)
+                tk.Label(wiersz, text=etykieta, bg=B["tlo2"], fg=B["tekst"],
+                         font=("Segoe UI", 10), anchor="w",
+                         width=22).pack(side="left")
+                v = tk.IntVar(value=int(u[klucz]))
+                zmienne[klucz] = v
+                tk.Scale(wiersz, from_=od, to=do, orient="horizontal",
+                         variable=v, command=zmiana, bg=B["tlo2"],
+                         fg=B["zloto"], troughcolor=B["tlo3"],
+                         activebackground=B["zloto"], highlightthickness=0,
+                         bd=0, sliderrelief="flat", length=180,
+                         font=("Segoe UI", 8)).pack(side="left", fill="x",
+                                                    expand=True)
+
+        def do_wzorca():
+            if not okno_pytania(w, "Wygląd ekranu logowania",
+                                "Przywrócić ustawienia fabryczne?",
+                                "Przywróć", "Zostaw"):
+                return
+            for k, v in zmienne.items():
+                v.set(UKLAD[k])
+            zmiana()
+            self.log("wygląd ekranu logowania wrócił do fabrycznego")
+
+        def zamknij():
+            if czekam["id"]:
+                try:
+                    w.after_cancel(czekam["id"])
+                except tk.TclError:
+                    pass
+            zapisz(self.d)
+            plotno.unbind_all("<MouseWheel>")
+            self.log("zmieniono wygląd ekranu logowania")
+            w.destroy()
+
+        tk.Button(stopka, text="Zamknij i zapisz", command=zamknij,
+                  relief="flat", bd=0, cursor="hand2", bg=B["akcent"],
+                  fg=B["naAkcencie"], font=("Segoe UI Semibold", 10),
+                  padx=18, pady=9).pack(side="right")
+        tk.Button(stopka, text="Ustawienia fabryczne", command=do_wzorca,
+                  relief="flat", bd=0, cursor="hand2", bg=B["tlo3"],
+                  fg=B["tekst"], font=("Segoe UI", 10), padx=16, pady=9
+                  ).pack(side="right", padx=(0, 8))
+
+        w.protocol("WM_DELETE_WINDOW", zamknij)
+        w.bind("<Escape>", lambda _e: zamknij())
+        w.after(120, zmiana)
+        return w
 
     def okno_kierowcy(self, idx):
         """Okno dodawania i edycji. idx=None znaczy nowy wpis."""
