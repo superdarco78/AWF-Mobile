@@ -1,7 +1,7 @@
 {
-  "wersja": "12.0.0",
-  "opis": "Co nowego w 12.0.0:\r\n\r\n• paczka 13.0.1",
+  "wersja": "13.0.2",
+  "opis": "Co nowego w 13.0.2:\r\n\r\n• Paczka 13.0.2",
   "paczka": "https://github.com/superdarco78/AWF-Mobile/releases/latest/download/AWF-Kierowcy.zip",
-  "suma": "1a3fc91dfd61a9151e541cd8a28d4acfada504cb7bf8d5be72871d7b42c52981",
+  "suma": "4cd361f1fe961db10c72e6bea81ca2b67ccf1c3179137f291b581c31bd6a8174",
   "wymagana": false
 }
