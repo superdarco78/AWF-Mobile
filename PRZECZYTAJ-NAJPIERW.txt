@@ -1,0 +1,79 @@
+==========================================================
+   AWF KIEROWCY — pierwsze uruchomienie repozytorium
+==========================================================
+
+   NUMER WERSJI — jeden plik, nic wiecej
+
+   Numer siedzi w pliku:   wersja-programu.txt
+   Teraz jest tam:         12.0.1
+
+   Czytaja go dwie rzeczy:
+     - budowanie na GitHubie (nadaje taki numer wydaniu)
+     - sam program (pokazuje go w rogu i w stopce)
+
+   Wiec numer zawsze sie zgadza.
+
+----------------------------------------------------------
+   JAK TO DZIALA PRZY KOLEJNYCH PACZKACH
+----------------------------------------------------------
+
+   Wgrywasz paczke, nic nie zmieniasz w tym pliku:
+      12.0.1 -> 12.0.2 -> 12.0.3 -> 12.0.4 ...
+      numer rosnie sam.
+
+   Chcesz przeskoczyc gdzie indziej:
+      otworz wersja-programu.txt, wpisz np.  15.0.0
+      i tyle bedzie w wydaniu.
+
+   Nic wiecej nie trzeba. Zadnych znacznikow,
+   zadnych opisow, zadnego edytowania kodu.
+
+----------------------------------------------------------
+   PIERWSZE WGRANIE DO PUSTEGO REPOZYTORIUM
+----------------------------------------------------------
+
+1. Rozpakuj ta paczke do folderu.
+
+2. Na stronie repozytorium kliknij:
+      Add file  ->  Upload files
+
+3. Przeciagnij CALY FOLDER na ramke, ktora sie pojawi.
+   (nie zaznaczone pliki — caly folder, zeby poszedl
+   tez ukryty podfolder .github)
+
+4. Na liscie plikow sprawdz, czy jest wpis:
+      .github/workflows/buduj.yml
+   Jesli go nie ma, przegladarka go pominela — wtedy
+   wgraj reszte, a ten jeden plik dodaj osobno przez
+   Add file -> Create new file, wpisujac sciezke
+   .github/workflows/buduj.yml i wklejajac zawartosc.
+
+5. Wpisz opis i zatwierdz. Budowanie ruszy samo.
+
+6. Zakladka Releases -> pobierz instalator -> zainstaluj.
+
+----------------------------------------------------------
+   POTEM JUZ TYLKO
+----------------------------------------------------------
+
+   Rozpakowanie nowej paczki na stara -> Ctrl+A ->
+   przeciagniecie na GitHuba. Program sam znajdzie
+   nowa wersje i sam sie zaktualizuje.
+
+----------------------------------------------------------
+   GDYBY COS POSZLO NIE TAK
+----------------------------------------------------------
+
+   Ustawienia -> Powrot do poprzedniej wersji
+   Jedno klikniecie, baza zostaje nietknieta.
+
+   Ustawienia -> Zapisz kopie bazy
+   Przed kazda wieksza zmiana.
+
+   Gdy Windows zablokuje program (Inteligentna kontrola
+   aplikacji): uruchom uruchom.bat z tego folderu.
+   To nie jest plik wykonywalny, wiec blokada go nie
+   dotyczy, a program dziala tak samo.
+
+==========================================================
+Monter24h.pl
