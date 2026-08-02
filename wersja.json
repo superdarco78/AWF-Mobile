@@ -1,7 +1,7 @@
 {
-  "wersja": "12.0.1",
-  "opis": "Co nowego w 12.0.1:\r\n\r\n• Change shell to Python and enhance versioning logicnowe\r\n• podmiana pliku budowania\r\n• Add GitHub Actions workflow for build and release\r\n• Awf kierowcy v12.0.1\r\n• Initial commit",
+  "wersja": "12.0.2",
+  "opis": "Co nowego w 12.0.2:\r\n\r\n• porawka",
   "paczka": "https://github.com/superdarco78/AWF-Mobile/releases/latest/download/AWF-Kierowcy.zip",
-  "suma": "3821bebb76054d75eba98e5cf90ef9828fb7f86ef1a3a469e2dc5f373cdd4fd9",
+  "suma": "6a4c990772fa2d1310beacb8cf0a97023d9fe55d9260cb227846f86791209e1b",
   "wymagana": false
 }

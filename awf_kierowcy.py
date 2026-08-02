@@ -22,7 +22,7 @@ except ImportError:
     print("Brakuje biblioteki Pillow. Uruchom: pip install pillow")
     sys.exit(1)
 
-VER = "12.0.1"
+VER = "12.0.2"
 
 
 def wersja_programu():
