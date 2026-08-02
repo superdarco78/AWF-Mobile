@@ -29,7 +29,7 @@ import urllib.error
 import urllib.request
 import zipfile
 
-REPO = "superdarco78/AWF-Kierowcy"
+REPO = "superdarco78/AWF-Mobile"   # nazwa repozytorium na GitHubie
 ADRES_WERSJI = f"https://raw.githubusercontent.com/{REPO}/main/wersja.json"
 LIMIT_S = 8
 
