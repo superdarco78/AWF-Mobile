@@ -27,17 +27,138 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Ustal numer wersji
         id: w
-        shell: bash
+        shell: python
         run: |
-          BAZA=$(head -1 wersja-programu.txt | tr -d '[:space:]' | sed 's/^v//')
-          if [ -z "$BAZA" ]; then
-            echo "::error::Pusty plik wersja-programu.txt"; exit 1
-          fi
-          NOWA="$BAZA"
-          while git rev-parse "v$NOWA" >/dev/null 2>&1; do
-            GLOWNA=$(echo "$NOWA" | cut -d. -f1)
-            SRODEK=$(echo "$NOWA" | cut -d. -f2)
-            MALA=$(echo "$NOWA" | cut -d. -f3)
-            [ -z "$SRODEK" ] &&
+          import os, re, subprocess
+
+          def polecenie(*args):
+              return subprocess.run(args, capture_output=True, text=True).stdout
+
+          with open("wersja-programu.txt", encoding="utf-8") as f:
+              baza = f.read().strip().lstrip("vV")
+          if not re.match(r"^\d+(\.\d+)*$", baza):
+              raise SystemExit("Zly numer w wersja-programu.txt: " + baza)
+
+          czesci = [int(x) for x in baza.split(".")]
+          while len(czesci) < 3:
+              czesci.append(0)
+
+          znaczniki = set(polecenie("git", "tag").split())
+          while "v" + ".".join(map(str, czesci)) in znaczniki:
+              czesci[-1] += 1
+          nowa = ".".join(map(str, czesci))
+          print("Wydanie:", nowa)
+
+          zakres = "HEAD"
+          ostatni = polecenie("git", "describe", "--tags", "--abbrev=0").strip()
+          if ostatni:
+              zakres = ostatni + "..HEAD"
+          opisy = []
+          for linia in polecenie("git", "log", "--format=%s", zakres).splitlines():
+              if re.match(r"^(Merge|wersja \d|budowanie|Add files via upload)",
+                          linia, re.I):
+                  continue
+              if linia.strip():
+                  opisy.append("• " + linia.strip())
+          opisy = opisy[:10] or ["• drobne poprawki"]
+
+          opis = "Co nowego w %s:\n\n%s" % (nowa, "\n".join(opisy))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("nowa=%s\n" % nowa)
+              f.write("opis<<KONIEC\n%s\nKONIEC\n" % opis)
+
+      - name: Zainstaluj narzedzia
+        run: python -m pip install --upgrade pip pyinstaller pillow
+
+      - name: Wpisz numer do plikow
+        shell: python
+        run: |
+          import re
+          w = "${{ steps.w.outputs.nowa }}"
+          with open("wersja-programu.txt", "w", encoding="utf-8") as f:
+              f.write(w + "\n")
+          for plik, wzor, nowy in (
+              ("awf_kierowcy.py", r'^VER = "[^"]*"', 'VER = "%s"' % w),
+              ("instalator.iss", r'#define WersjaApp\s+"[^"]*"',
+               '#define WersjaApp   "%s"' % w),
+          ):
+              with open(plik, encoding="utf-8") as f:
+                  tresc = f.read()
+              tresc = re.sub(wzor, nowy, tresc, count=1, flags=re.M)
+              with open(plik, "w", encoding="utf-8") as f:
+                  f.write(tresc)
+          print("wersja wpisana:", w)
+
+      - name: Zbuduj program
+        run: >
+          python -m PyInstaller --onedir --windowed --clean --noupx
+          --name "AWF-Kierowcy"
+          --icon ikona.ico
+          --manifest manifest.xml
+          --add-data "*.png;."
+          --add-data "*.jpg;."
+          --add-data "*.ico;."
+          --add-data "*.json;."
+          --add-data "wersja-programu.txt;."
+          --hidden-import tlo_wbudowane
+          awf_kierowcy.py
+
+      - name: Zbuduj instalator
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" instalator.iss
+
+      - name: Spakuj wersje przenosna
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\AWF-Kierowcy\* -DestinationPath AWF-Kierowcy.zip -Force
+          $suma = (Get-FileHash AWF-Kierowcy.zip -Algorithm SHA256).Hash.ToLower()
+          "SUMA=$suma" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Zapisz wersja.json
+        shell: python
+        env:
+          NOWA: ${{ steps.w.outputs.nowa }}
+          OPIS: ${{ steps.w.outputs.opis }}
+          REPO: ${{ github.repository }}
+        run: |
+          import json, os
+          dane = {
+              "wersja": os.environ["NOWA"],
+              "opis": os.environ["OPIS"],
+              "paczka": "https://github.com/" + os.environ["REPO"]
+                        + "/releases/latest/download/AWF-Kierowcy.zip",
+              "suma": os.environ["SUMA"],
+              "wymagana": False,
+          }
+          with open("wersja.json", "w", encoding="utf-8") as f:
+              json.dump(dane, f, ensure_ascii=False, indent=2)
+
+      - name: Odeslij zmiany
+        shell: pwsh
+        run: |
+          git config user.name "budowanie"
+          git config user.email "budowanie@users.noreply.github.com"
+          git add wersja.json wersja-programu.txt awf_kierowcy.py instalator.iss
+          git diff --staged --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "wersja ${{ steps.w.outputs.nowa }} [bez wydania]"
+            git push
+          }
+
+      - name: Opublikuj wydanie
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.w.outputs.nowa }}
+          name: AWF KIEROWCY ${{ steps.w.outputs.nowa }}
+          body: ${{ steps.w.outputs.opis }}
+          files: |
+            AWF-Kierowcy-Instalator-*.exe
+            AWF-Kierowcy.zip
